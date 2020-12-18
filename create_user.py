@@ -39,7 +39,7 @@ def lambda_handler(event, context):
     try:
         resp = client.admin_create_user(
             UserPoolId= USER_POOL_ID,
-            SecretHash=get_secret_hash(username),
+            SecretHash=get_secret_hash(username_req),
             Username= username_req,
             UserAttributes=[
                 {
@@ -58,7 +58,7 @@ def lambda_handler(event, context):
                 },
                 {
                     'Name': "custom:username",
-                    'Value': username
+                    'Value': username_req
                 },
             ],
             TemporaryPassword= senha,
@@ -71,13 +71,13 @@ def lambda_handler(event, context):
                 'string': 'string'
             }
         )
-        resp_group = response = client.admin_add_user_to_group(
+        resp_group = client.admin_add_user_to_group(
             UserPoolId= USER_POOL_ID,
             Username= username_req,
             GroupName='string'
         )
 
-        resposta  =  cliente.admin_confirm_sign_up ( 
+        resposta  =  client.admin_confirm_sign_up ( 
             UserPoolId = USER_POOL_ID , 
             Username = username_req , 
             ClientMetadata = { 
