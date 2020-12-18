@@ -76,6 +76,14 @@ def lambda_handler(event, context):
             Username= username_req,
             GroupName='string'
         )
+
+        resposta  =  cliente.admin_confirm_sign_up ( 
+            UserPoolId = USER_POOL_ID , 
+            Username = username_req , 
+            ClientMetadata = { 
+                'string' :  'string' 
+            } 
+        )
             
     
     except client.exceptions.UsernameExistsException as e:
