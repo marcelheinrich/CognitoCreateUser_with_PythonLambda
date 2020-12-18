@@ -8,12 +8,17 @@ import uuid
 USER_POOL_ID = '<your user pool id>'
 CLIENT_ID = '<your client id>'
 CLIENT_SECRET ='<your client secret>'
+
+
 def get_secret_hash(username):
     msg = username + CLIENT_ID
     dig = hmac.new(str(CLIENT_SECRET).encode('utf-8'), 
         msg = str(msg).encode('utf-8'), digestmod=hashlib.sha256).digest()
     d2 = base64.b64encode(dig).decode()
     return d2
+
+
+
 def lambda_handler(event, context):
     client = boto3.client('cognito-idp')
     try:

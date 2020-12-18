@@ -4,6 +4,8 @@ import hmac
 import hashlib
 import base64
 import json
+from random import choice
+import string
 
 USER_POOL_ID = ''
 CLIENT_ID = ''
@@ -15,42 +17,66 @@ def get_secret_hash(username):
         msg = str(msg).encode('utf-8'), digestmod=hashlib.sha256).digest()
     d2 = base64.b64encode(dig).decode()
     return d2
+
+
+
 def lambda_handler(event, context):
     for field in ["username", "email", "password", "name"]:
         if not event.get(field):
             return {"error": False, "success": True, 'message': f"{field} is not present", "data": None}
-    username = event['username']
+    username_req = event['username']
     email = event["email"]
     password = event['password']
     name = event["name"]
     client = boto3.client('cognito-idp')
+
+
+    valores = string.ascii_letters + string.digits + string.punctuation
+    senha = ''
+    for i in range(8):
+        senha += choice(valores)
+
     try:
-        resp = client.sign_up(
-            ClientId=CLIENT_ID,
+        resp = client.admin_create_user(
+            UserPoolId= USER_POOL_ID,
             SecretHash=get_secret_hash(username),
-            Username=username,
-            Password=password, 
+            Username= username_req,
             UserAttributes=[
-            {
-                'Name': "name",
-                'Value': name
-            },
-            {
-                'Name': "email",
-                'Value': email
-            }
+                {
+                    'Name': "name",
+                    'Value': name
+                },
+                {
+                    'Name': "email",
+                    'Value': email
+                },
             ],
             ValidationData=[
                 {
-                'Name': "email",
-                'Value': email
-            },
-            {
-                'Name': "custom:username",
-                'Value': username
+                    'Name': "email",
+                    'Value': email
+                },
+                {
+                    'Name': "custom:username",
+                    'Value': username
+                },
+            ],
+            TemporaryPassword= senha,
+            ForceAliasCreation=True,
+            MessageAction='RESEND',
+            DesiredDeliveryMediums=[
+                'EMAIL',
+            ],
+            ClientMetadata={
+                'string': 'string'
             }
-])
-    
+        )
+        resp_group = response = client.admin_add_user_to_group(
+            UserPoolId= USER_POOL_ID,
+            Username= username_req,
+            GroupName='string'
+        )
+            
     
     except client.exceptions.UsernameExistsException as e:
         return {"error": False, 
@@ -79,5 +105,5 @@ def lambda_handler(event, context):
     return {"error": False, 
             "success": True, 
             "message": "Please confirm your signup, \
-                        check Email for validation code", 
+                        check Email for username and password", 
             "data": None}
